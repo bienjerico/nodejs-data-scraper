@@ -52,6 +52,60 @@ app.get('/process-artists', function (req, res) {
 	})
 })
 
+/* get manuals */
+app.get('/manuals',function(){
+	
+	request('http://www.tcelectronic.com/support/manuals', function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var $ = cheerio.load(body);
+
+			var manuals = $("#manuals");
+			var manualsList = manuals.find("ul > li");
+			var cnt = 0;
+			var obj = [];
+
+			manualsList.each(function(){
+				cnt++;
+
+				console.log(cnt);
+				
+				var productName  = "";
+				var productImage = "";
+				var objSub = [];
+
+				productName = $(this).find("h3 > span").text();
+				productImage = $(this).find("h3 > img").attr("src");
+
+				$(this).find("li").each(function(){
+
+					var manualName = $(this).find("a").text();
+					var manualPdf = $(this).find("a").attr("href");
+					var manualLang = $(this).find("a > span").text();
+
+					objSub.push({
+						manualName: manualName,
+						manualPdf: manualPdf,
+						manualLang: manualLang
+					})
+
+				})
+
+				obj.push({
+					productName: productName,
+					productImage: productImage,
+					productManuals: [objSub]
+				});
+
+			})
+
+			console.log(obj);
+			fs.writeFile('products-manual.json', JSON.stringify(obj, null, 4), 'utf-8');
+
+		}
+	})
+
+});
+
 /* display artist */
 app.get('/artists',function(req,res){
 	fs.readFile('studio-pros.json', 'utf8', function (err, data) {
@@ -80,6 +134,8 @@ app.get('/artists',function(req,res){
 	
 	});
 });
+
+
 
 
 
