@@ -52,8 +52,37 @@ app.get('/process-artists', function (req, res) {
 	})
 })
 
+/* display artist */
+app.get('/artists',function(req,res){
+	fs.readFile('studio-pros.json', 'utf8', function (err, data) {
+
+	    if (err) throw err; // we'll not consider error handling for now
+
+	    var obj = JSON.parse(data);
+	    var artists = obj.artists;
+	    var result = "<html><body><table table=1 cellpadding=0>";
+	    var cnt = 1;
+
+	    for(var x = 0 ; x < artists.length ; x++){
+			var image = artists[x].image; 
+			var name = artists[x].h2; 
+			var bandname = artists[x].h3; 
+			var message = artists[x].p; 
+			var desc = artists[x].desc; 
+			var products = artists[x].products; 
+
+			result += "<tr><td>"+cnt+"</td><td>"+image+"</td><td>"+name+"</td><td>"+bandname+"</td><td>"+message+"</td><td>"+desc+"</td><td>"+products+"</td></tr>";
+			cnt++;
+	    }
+
+	    result += "</table></body></html>";
+	    res.send(result);
+	
+	});
+});
+
 /* get manuals */
-app.get('/manuals',function(){
+app.get('/process-manuals',function(){
 	
 	request('http://www.tcelectronic.com/support/manuals', function (error, response, body) {
 		if (!error && response.statusCode == 200) {
@@ -106,34 +135,38 @@ app.get('/manuals',function(){
 
 });
 
-/* display artist */
-app.get('/artists',function(req,res){
-	fs.readFile('studio-pros.json', 'utf8', function (err, data) {
+/* get TC helicon artists */
+app.get('/process-helicon-artists',function(){
 
-	    if (err) throw err; // we'll not consider error handling for now
+	request('http://www.tc-helicon.com/en/artists/', function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var $ = cheerio.load(body);
 
-	    var obj = JSON.parse(data);
-	    var artists = obj.artists;
-	    var result = "<html><body><table table=1 cellpadding=0>";
-	    var cnt = 1;
+			var manuals = $(".row");
+			manuals.find("a.circle-view").each(function(){
 
-	    for(var x = 0 ; x < artists.length ; x++){
-			var image = artists[x].image; 
-			var name = artists[x].h2; 
-			var bandname = artists[x].h3; 
-			var message = artists[x].p; 
-			var desc = artists[x].desc; 
-			var products = artists[x].products; 
+				var artistsUrl = $(this).attr("href");
+				var artistsName = $(this).find("span").text();
+				var artistsImage = $(this).find("img").attr("src");
 
-			result += "<tr><td>"+cnt+"</td><td>"+image+"</td><td>"+name+"</td><td>"+bandname+"</td><td>"+message+"</td><td>"+desc+"</td><td>"+products+"</td></tr>";
-			cnt++;
-	    }
+				console.log(artistsUrl);
+				console.log(artistsName);
+				console.log(artistsImage);
 
-	    result += "</table></body></html>";
-	    res.send(result);
-	
-	});
+				request('http://www.tc-helicon.com'+artistsUrl, function (error, response, body) {
+					var content = $(".pc");
+
+					content.find("div").last().each(function(){
+						console.log($(this).find('p').text());
+					})
+					
+				})
+			});
+		}
+	})
+
 });
+
 
 
 
