@@ -4,7 +4,7 @@ var request = require('request');
 var cheerio = require('cheerio');
 var app     = express();
 
-/* get GUITAR ARTIST */
+/* get artist */
 app.get('/process-artists', function (req, res) {
 
 	request('http://www.tcelectronic.com/artists/studio-pros', function (error, response, body) {
@@ -52,7 +52,7 @@ app.get('/process-artists', function (req, res) {
 	})
 })
 
-/* display GUITAR ARTIST */
+/* display artist */
 app.get('/artists',function(req,res){
 	fs.readFile('studio-pros.json', 'utf8', function (err, data) {
 
