@@ -42,7 +42,7 @@ app.get('/process-artists', function (req, res) {
 											desc : $("#artist-description").children().text(),
 											products : productdata
 										}) 
-							fs.writeFile('studio-pros.json', JSON.stringify(obj, null, 4), 'utf-8');
+							fs.writeFile('tcelectronic-studio-pros.json', JSON.stringify(obj, null, 4), 'utf-8');
 							cnt++;
 						  	console.log(cnt +' - '+ $("#variable-banner-text h2").text());
 						}
@@ -54,7 +54,7 @@ app.get('/process-artists', function (req, res) {
 
 /* display artist */
 app.get('/artists',function(req,res){
-	fs.readFile('studio-pros.json', 'utf8', function (err, data) {
+	fs.readFile('tcelectronic-studio-pros.json', 'utf8', function (err, data) {
 
 	    if (err) throw err; // we'll not consider error handling for now
 
@@ -128,7 +128,7 @@ app.get('/process-manuals',function(){
 			})
 
 			console.log(obj);
-			fs.writeFile('products-manual.json', JSON.stringify(obj, null, 4), 'utf-8');
+			fs.writeFile('tcelectronic-products-manual.json', JSON.stringify(obj, null, 4), 'utf-8');
 
 		}
 	})
@@ -141,30 +141,56 @@ app.get('/process-helicon-artists',function(){
 	request('http://www.tc-helicon.com/en/artists/', function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 			var $ = cheerio.load(body);
-
+			var cnt = 0;
+			var obj = [];
 			var manuals = $(".row");
+
 			manuals.find("a.circle-view").each(function(){
+				cnt++;
+
+				console.log(cnt);
 
 				var artistsUrl = $(this).attr("href");
 				var artistsName = $(this).find("span").text();
 				var artistsImage = $(this).find("img").attr("src");
+				var objSub = [];
 
-				console.log(artistsUrl);
-				console.log(artistsName);
-				console.log(artistsImage);
 
 				request('http://www.tc-helicon.com'+artistsUrl, function (error, response, body) {
-					var content = $(".pc");
-
-					content.find("div").last().each(function(){
-						console.log($(this).find('p').text());
-					})
-					
+						if (!error && response.statusCode == 200) {
+							var $ = cheerio.load(body);
+							var aboutData = "";
+							$('#umbraco-current-partial-id .col-xs-12.col-sm-6.clearfix p').each(function(){
+								aboutData += $(this).html();
+							})
+							var artistMessage = $("#umbraco-current-partial-id .col-xs-12.col-sm-6 blockquote").text();
+						}
+				obj.push({
+					artistsName: artistsName,
+					artistsImage: artistsImage,
+					artistsMessage: artistMessage,
+					artistsAbout: aboutData
+				});
+				fs.writeFile('tc-helicon-artist.json', JSON.stringify(obj, null, 4), 'utf-8');
 				})
 			});
 		}
 	})
 
+});
+
+/* get scrap HTML code */
+app.get('/solo-artist',function(){
+	request('http://www.tc-helicon.com/en/artists/daughter', function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+			var $ = cheerio.load(body);
+			$('#umbraco-current-partial-id .col-xs-12.col-sm-6.clearfix p').each(function(){
+				console.log("Scraping.......");
+				console.log($(this).html());
+			})
+		}
+
+	})
 });
 
 
